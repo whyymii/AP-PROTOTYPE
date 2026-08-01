@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PROTOTYPE — Campus Announcements</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --board: #A9764C;
+    --frame: #6B4A2E;
+    --wall: #EFE9DD;
+    --ink: #241A12;
+    --paper: #FBF5E9;
+    --academics: #2C4A6E;
+    --events: #00CC00;
+    --urgent: #96201C;
+    --focus: #FFD86B;
+    --science: #C0C0C0;
+    --math: #FFD300;
+    --english: #0000FF;
+    --filipino: #FF007F;
+    --ap: #000000;
+    --tle: #0A6522;
+  }
+
+  * { box-sizing: border-box; }
+  [hidden] {
+    display: none !important;
+ }
+
+  body {
+    margin: 0;
+    background: var(--wall);
+    color: var(--ink);
+    font-family: 'Work Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---------- Header ---------- */
+  .site-header {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .brand { display: flex; align-items: center; gap: 0.75rem; }
+
+  .brand .pin-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--paper);
+    box-shadow: 0 2px 3px rgba(0,0,0,0.5);
+    flex-shrink: 0;
+  }
+
+  .brand h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-weight: 400;
+    font-size: 2.2rem;
+    letter-spacing: 0.04em;
+    margin: 0;
+    line-height: 1;
+  }
+
+  .brand .tagline { margin: 0.2rem 0 0; font-size: 0.85rem; opacity: 0.75; }
+
+  .today {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.8;
+    text-align: right;
+  }
+
+  /* ---------- Controls ---------- */
+  .controls {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 1.25rem 1.5rem 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .filters { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+  .filter-btn {
+    font-family: 'Work Sans', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    border: 2px solid var(--ink);
+    background: transparent;
+    color: var(--ink);
+    padding: 0.4rem 0.9rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  .filter-btn[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+
+  .filter-btn.urgent-filter { border-color: var(--urgent); color: var(--urgent); }
+  .filter-btn.urgent-filter[aria-pressed="true"] { background: var(--urgent); color: var(--paper); }
+
+  .search-bar {
+    font-family: 'Work Sans', sans-serif;
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    border: 2px solid var(--frame);
+    background: var(--paper);
+    color: var(--ink);
+    min-width: 200px;
+  }
+
+  /* ---------- The board ---------- */
+  .board {
+    max-width: 1100px;
+    margin: 1.5rem auto 3rem;
+    padding: 2.5rem 2rem;
+    border: 10px solid var(--frame);
+    border-radius: 6px;
+    background-color: var(--board);
+    background-image:
+      radial-gradient(circle at 10% 20%, rgba(0,0,0,0.08) 0, transparent 2%),
+      radial-gradient(circle at 80% 15%, rgba(0,0,0,0.07) 0, transparent 2.5%),
+      radial-gradient(circle at 35% 65%, rgba(0,0,0,0.06) 0, transparent 2%),
+      radial-gradient(circle at 70% 85%, rgba(0,0,0,0.08) 0, transparent 3%),
+      radial-gradient(circle at 50% 45%, rgba(0,0,0,0.05) 0, transparent 2%),
+      radial-gradient(circle at 90% 55%, rgba(255,255,255,0.06) 0, transparent 2%),
+      radial-gradient(circle at 15% 88%, rgba(255,255,255,0.06) 0, transparent 2.5%);
+    background-size: 160px 160px;
+    box-shadow: inset 0 2px 14px rgba(0,0,0,0.3);
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 2rem 1.5rem;
+    min-height: 200px;
+  }
+
+  .card {
+    background: var(--paper);
+    border-radius: 2px;
+    padding: 1.5rem 1.25rem 1.25rem;
+    box-shadow: 0 10px 18px -6px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.2);
+    position: relative;
+    transform: rotate(var(--r, -1deg));
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    cursor: pointer;
+  }
+
+  .card:hover, .card:focus-visible {
+    transform: rotate(0deg) translateY(-3px);
+    box-shadow: 0 16px 24px -6px rgba(0,0,0,0.45), 0 3px 6px rgba(0,0,0,0.25);
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: -9px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--pin, var(--ink));
+    box-shadow: 0 3px 4px rgba(0,0,0,0.45);
+  }
+
+  .card--academics { --pin: var(--academics); }
+  .card--events { --pin: var(--events); }
+  .card--urgent { --pin: var(--urgent); }
+  .card--urgent::before { animation: pulse 2s ease-in-out infinite; }
+  .card--science { --pin: var(--science); }
+  .card--math { --pin: var(--math); }
+  .card--english { --pin: var(--english); }
+  .card--filipino { --pin: var(--filipino); }
+  .card--ap { --pin: var(--ap); }
+  .card--tle { --pin: var(--tle); }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 3px 4px rgba(0,0,0,0.45), 0 0 0 0 rgba(150,32,28,0.5); }
+    50% { box-shadow: 0 3px 4px rgba(0,0,0,0.45), 0 0 0 6px rgba(150,32,28,0); }
+  }
+
+  .card-tag {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--paper);
+    background: var(--pin, var(--ink));
+    padding: 0.2rem 0.55rem;
+    border-radius: 3px;
+    margin-bottom: 0.6rem;
+  }
+
+  .card h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-weight: 400;
+    font-size: 1.5rem;
+    letter-spacing: 0.02em;
+    margin: 0 0 0.35rem;
+    line-height: 1.1;
+  }
+
+  .card time { display: block; font-size: 0.75rem; opacity: 0.6; margin-bottom: 0.6rem; }
+  .card p { font-size: 0.9rem; line-height: 1.45; margin: 0; }
+
+  .empty-state { max-width: 1100px; margin: 2rem auto; text-align: center; opacity: 0.6; font-size: 0.95rem; }
+
+  /* ---------- Materials ---------- */
+  .section-tabs{
+    display:flex;
+    justify-content:center;
+    gap:12px;
+    margin:20px 0;
+  }
+
+  .tab-btn{
+    font-family:'Bebas Neue', sans-serif;
+    font-size:1.2rem;
+    letter-spacing:.05em;
+    padding:10px 28px;
+    border:2px solid var(--ink);
+    border-radius:999px;
+    background:var(--paper);
+    color:var(--ink);
+    cursor:pointer;
+    transition:.2s ease;
+  }
+
+  .tab-btn:hover{
+    transform:translateY(-2px);
+    background:#f4ecdc;
+  }
+
+  .tab-btn.active{
+    background:var(--ink);
+    color:var(--paper);
+  }
+
+  /* ---------- Modal ---------- */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(36,26,18,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    z-index: 10;
+  }
+
+  .modal {
+    background: var(--paper);
+    max-width: 700px;
+    width: 100%;
+    max-height: 85vh;
+    border-radius: 3px;
+    padding: 2rem 1.75rem 1.75rem;
+    position: relative;
+    box-shadow: 0 24px 48px rgba(0,0,0,0.4);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .modal-scroll {
+    overflow-y: auto;
+    min-height: 0;
+  }
+
+  .modal::before {
+    content: '';
+    position: absolute;
+    top: -9px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--pin, var(--ink));
+    box-shadow: 0 3px 4px rgba(0,0,0,0.45);
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.9rem;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--ink);
+    opacity: 0.5;
+  }
+  .modal-close:hover { opacity: 0.9; }
+
+  .modal h2 { font-family: 'Bebas Neue', sans-serif; font-weight: 400; font-size: 2rem; margin: 0 0 0.25rem; }
+  .modal-date { font-size: 0.8rem; opacity: 0.6; margin: 0 0 1rem; }
+  .modal-body { font-size: 0.95rem; line-height: 1.6; margin: 0; }
+
+  button:focus-visible, input:focus-visible, .card:focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  @media (max-width: 640px) {
+    .site-header { padding: 1.25rem 1rem; }
+    .brand h1 { font-size: 1.7rem; }
+    .board { padding: 1.75rem 1rem; border-width: 6px; gap: 1.5rem 1rem; }
+    .controls { padding: 1rem 1rem 0; }
+    .search-bar {
+	  width: 100%; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="brand">
+    <span class="pin-dot" aria-hidden="true"></span>
+    <div>
+      <h1>PROTOTYPE</h1>
+      <p class="tagline">Ramon Magsaysay High School</p>
+    </div>
+  </div>
+  <div class="today" id="todayDate"></div>
+</header>
+
+<nav class="section-tabs">
+    <button class="tab-btn active" data-section="announcements">
+        Announcements
+    </button>
+
+    <button class="tab-btn" data-section="materials">
+        Learning Materials
+    </button>
+</nav>
+
+<section id="announcementSection">
+
+<div class="controls">
+  <div class="filters" role="group" aria-label="Filter by category">
+    <button class="filter-btn" data-category="all" aria-pressed="true">All</button>
+    <button class="filter-btn" data-category="academics" aria-pressed="false">Academics</button>
+    <button class="filter-btn" data-category="events" aria-pressed="false">Events</button>
+    <button class="filter-btn urgent-filter" data-category="urgent" aria-pressed="false">Urgent</button>
+  </div>
+  <input type="search" class="search-bar" id="searchInput" placeholder="Search announcements…" aria-label="Search announcements">
+</div>
+
+<main class="board" id="board" aria-live="polite"></main>
+<p class="empty-state" id="emptyState" hidden>Nothing here yet — try a different filter or search.</p>
+
+</section>
+ <section id="materialsSection" hidden>
+
+  <div class="controls">
+
+   <div class="filters">
+
+	<button class="filter-btn" data-subject="all" aria-pressed="true">All</button>
+	<button class="filter-btn" data-subject="science" aria-pressed="false">Science</button>
+	<button class="filter-btn" data-subject="math" aria-pressed="false">Math</button>
+	<button class="filter-btn" data-subject="english" aria-pressed="false">English</button>
+	<button class="filter-btn" data-subject="filipino" aria-pressed="false">Filipino</button>
+	<button class="filter-btn" data-subject="ap" aria-pressed="false">AP</button>
+	<button class="filter-btn" data-subject="tle" aria-pressed="false">TLE</button>
+
+   </div>
+   <input type="search" class="search-bar" id="materialSearch" placeholder="Search learning materials..." aria-label="Search learning materials">
+  </div>
+
+ <main class="board" id="materialsBoard"></main>
+ <p class="empty-state" id="materialsEmptyState" hidden>Nothing here yet — try a different filter or search.</p>
+
+</section>
+
+<div class="modal-overlay" id="modalOverlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <button class="modal-close" id="modalClose" aria-label="Close">×</button>
+    <div class="modal-scroll">
+      <span class="card-tag" id="modalTag"></span>
+      <h2 id="modalTitle"></h2>
+      <p class="modal-date" id="modalDate"></p>
+      <p class="modal-body" id="modalBody"></p>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* =========================================================
+     ANNOUNCEMENTS DATA — MAIN CONTENT OF THE SITE.
+     To add a new announcement: copy one whole { ... } block
+     below, paste it before the closing "];", then edit the text.
+     category must be exactly one of:
+       academics | events | urgent
+     date format: "YYYY-MM-DD"
+	 title:
+	 category:
+	 date:
+	 excerpt: 
+	 body: 
+  ========================================================= */
+  const announcements = [
+    {
+      title: "testing this",
+      category: "urgent",
+      date: "2026-07-31",
+      excerpt: "testing 123 placeholder blah blah blah.",
+	  body: "this is a placeholder for testing etc etc blah blah blah."
+    },
+    {
+      title: "announcement test",
+      category: "academics",
+      date: "2026-07-31",
+      excerpt: "testing different categories",
+      body: "check back for updates"
+    },
+	{
+	 title: "testing big filler card",
+	 category: "events",
+	 date: "2026-08-01",
+	 excerpt: "filler",
+	 body: "filler stuff 1234567890 abcdefghijklmnopqrstuvwxyz the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog."
+	}
+  ];
+  
+  const materials = [
+
+	{
+    title:"sir alas",
+    subject:"ap",
+    date:"2026-08-01",
+    excerpt:"my 45 minutes ap araling panlipunan time",
+    body:"who's making those scandalous sounds?"
+	},
+
+	{
+    title:"linear functions",
+    subject:"math",
+    date:"2026-08-01",
+    excerpt:"what are linear functions",
+    body:"lesson content"
+	},
+
+	{
+    title:"maam nemrac",
+    subject:"filipino",
+    date:"2026-08-01",
+    excerpt:"demeter sagutin mo nga...",
+    body:"buod repleksyon notes groupings"
+	}
+
+	];
+
+  const board = document.getElementById('board');
+  const emptyState = document.getElementById('emptyState');
+  const searchInput = document.getElementById('searchInput');
+  const materialSearch = document.getElementById('materialSearch');
+  const materialsEmptyState = document.getElementById('materialsEmptyState');
+  const filterButtons = document.querySelectorAll('.filters button[data-category]');
+  const modalOverlay = document.getElementById('modalOverlay');
+  const modalClose = document.getElementById('modalClose');
+
+  let activeCategory = 'all';
+  let searchTerm = '';
+  let lastFocusedCard = null;
+
+  const categoryLabels = {
+    academics: 'Academics',
+    events: 'Events',
+    urgent: 'Urgent'
+  };
+  
+  const subjectLabels = {
+    science:"Science",
+    math:"Math",
+    english:"English",
+    filipino:"Filipino",
+    ap:"Araling Panlipunan",
+    tle:"TLE"
+  };
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function formatDate(iso) {
+    const d = new Date(iso + 'T00:00:00');
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  function updateTodayDisplay() {
+    document.getElementById('todayDate').textContent =
+      new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  }
+
+  function render() {
+    const term = searchTerm.toLowerCase();
+    const filtered = announcements.filter(a => {
+      const matchesCategory = activeCategory === 'all' || a.category === activeCategory;
+      const matchesSearch = (a.title + ' ' + a.excerpt).toLowerCase().includes(term);
+      return matchesCategory && matchesSearch;
+    });
+
+    board.innerHTML = '';
+    filtered.forEach((a, i) => {
+      const card = document.createElement('article');
+      card.className = `card card--${a.category}`;
+      card.style.setProperty('--r', `${((i % 5) - 2) * 0.6}deg`);
+      card.tabIndex = 0;
+      card.setAttribute('role', 'button');
+      card.setAttribute('aria-label', `Open announcement: ${a.title}`);
+      card.innerHTML = `
+        <span class="card-tag">${categoryLabels[a.category]}</span>
+        <h3>${escapeHtml(a.title)}</h3>
+        <time datetime="${a.date}">${formatDate(a.date)}</time>
+        <p>${escapeHtml(a.excerpt)}</p>
+      `;
+      card.addEventListener('click', () => openModal(a, card));
+      card.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal(a, card); }
+      });
+      board.appendChild(card);
+    });
+
+    emptyState.hidden = filtered.length !== 0;
+  }
+
+let activeSubject = "all";
+let materialSearchTerm = "";
+
+function renderMaterials(){
+
+    const board = document.getElementById("materialsBoard"); board.innerHTML = "";
+    const term = materialSearchTerm.toLowerCase();
+    const filtered = materials.filter(m => {
+	
+        const matchesSubject =
+            activeSubject === "all" ||
+            m.subject === activeSubject;
+
+        const matchesSearch =
+            (m.title + " " + m.excerpt)
+            .toLowerCase()
+            .includes(term);
+
+        return matchesSubject && matchesSearch;
+
+    });
+
+    filtered.forEach((m,i)=>{
+
+        const card=document.createElement("article");
+
+        card.className=`card card--${m.subject}`;
+
+        card.style.setProperty(
+            "--r",
+            `${((i%5)-2)*0.6}deg`
+        );
+
+        card.tabIndex = 0;
+        card.setAttribute('role', 'button');
+        card.setAttribute('aria-label', `Open material: ${m.title}`);
+
+        card.innerHTML=`
+            <span class="card-tag">
+                ${subjectLabels[m.subject]}
+            </span>
+
+            <h3>${escapeHtml(m.title)}</h3>
+
+            <time datetime="${m.date}">${formatDate(m.date)}</time>
+
+            <p>${escapeHtml(m.excerpt)}</p>
+        `;
+
+        const openThisMaterial = () => openModal({
+            title:m.title,
+            body:m.body,
+            date:m.date,
+            category:m.subject
+        },card);
+
+        card.addEventListener('click', openThisMaterial);
+        card.addEventListener('keydown', e => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openThisMaterial(); }
+        });
+
+        board.appendChild(card);
+
+    });
+
+    materialsEmptyState.hidden = filtered.length !== 0;
+
+ }
+
+  function openModal(a, triggerEl) {
+    lastFocusedCard = triggerEl;
+    document.getElementById('modalTag').textContent = categoryLabels[a.category] || subjectLabels[a.category]; 
+    document.getElementById('modalTitle').textContent = a.title;
+    document.getElementById('modalDate').textContent = formatDate(a.date);
+    document.getElementById('modalBody').textContent = a.body;
+    document.querySelector('.modal').className = `modal card--${a.category}`;
+    modalOverlay.hidden = false;
+    modalClose.focus();
+  }
+
+  function closeModal() {
+    modalOverlay.hidden = true;
+    if (lastFocusedCard) lastFocusedCard.focus();
+  }
+
+  modalClose.addEventListener('click', closeModal);
+  modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) closeModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !modalOverlay.hidden) closeModal(); });
+
+filterButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+
+        if (!btn.dataset.category) return;
+
+        activeCategory = btn.dataset.category;
+
+        filterButtons.forEach(b =>
+            b.setAttribute('aria-pressed', b === btn ? 'true' : 'false')
+        );
+
+        render();
+    });
+});
+
+const subjectButtons = document.querySelectorAll(
+    "#materialsSection button[data-subject]"
+);
+
+subjectButtons.forEach(btn => {
+
+    btn.addEventListener("click", () => {
+
+        activeSubject = btn.dataset.subject;
+
+        subjectButtons.forEach(b =>
+            b.setAttribute("aria-pressed", b === btn ? "true" : "false")
+        );
+
+        renderMaterials();
+
+    });
+
+});
+
+  searchInput.addEventListener('input', e => { searchTerm = e.target.value; render(); });
+  
+  materialSearch.addEventListener("input", e => {
+
+    materialSearchTerm = e.target.value;
+
+    renderMaterials();
+
+});
+
+
+const tabs=document.querySelectorAll(".tab-btn");
+
+tabs.forEach(tab=>{
+
+    tab.onclick=()=>{
+
+        tabs.forEach(t=>t.classList.remove("active"));
+
+        tab.classList.add("active");
+
+        document.getElementById("announcementSection").hidden =
+            tab.dataset.section!=="announcements";
+
+        document.getElementById("materialsSection").hidden =
+            tab.dataset.section!=="materials";
+
+        if(tab.dataset.section==="materials")
+            renderMaterials();
+
+    };
+
+});
+
+  updateTodayDisplay();
+  render(); 
+</script>
+</body>
+</html>
