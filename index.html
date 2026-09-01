@@ -37,6 +37,12 @@
     color: var(--ink);
     font-family: 'Work Sans', sans-serif;
     -webkit-font-smoothing: antialiased;
+    animation: fadeIn 0.5s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
   /* ---------- Header ---------- */
@@ -105,8 +111,11 @@
     padding: 0.4rem 0.9rem;
     border-radius: 999px;
     cursor: pointer;
-    transition: background 0.15s ease, color 0.15s ease;
+    transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
   }
+
+  .filter-btn:hover { transform: translateY(-1px); }
+  .filter-btn:active { transform: scale(0.95); }
 
   .filter-btn[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
 
@@ -157,6 +166,12 @@
     transform: rotate(var(--r, -1deg));
     transition: transform 0.15s ease, box-shadow 0.15s ease;
     cursor: pointer;
+    animation: cardPop 0.3s ease backwards;
+  }
+
+  @keyframes cardPop {
+    from { opacity: 0; transform: scale(0.92) rotate(var(--r, -1deg)); }
+    to { opacity: 1; transform: scale(1) rotate(var(--r, -1deg)); }
   }
 
   .card:hover, .card:focus-visible {
@@ -206,6 +221,13 @@
     margin-bottom: 0.6rem;
   }
 
+  .card--events .card-tag,
+  .card--science .card-tag,
+  .card--math .card-tag,
+  .card--filipino .card-tag {
+    color: var(--ink);
+  }
+
   .card h3 {
     font-family: 'Bebas Neue', sans-serif;
     font-weight: 400;
@@ -218,7 +240,7 @@
   .card time { display: block; font-size: 0.75rem; opacity: 0.6; margin-bottom: 0.6rem; }
   .card p { font-size: 0.9rem; line-height: 1.45; margin: 0; }
 
-  .empty-state { max-width: 1100px; margin: 2rem auto; text-align: center; opacity: 0.6; font-size: 0.95rem; }
+  .empty-state { max-width: 1100px; margin: 2rem auto; text-align: center; opacity: 0.6; font-size: 0.95rem; animation: fadeIn 0.3s ease; }
   
   .site-footer {
     text-align: center;
@@ -255,9 +277,22 @@
     background:#f4ecdc;
   }
 
+  .tab-btn:active{
+    transform: scale(0.95);
+  }
+
   .tab-btn.active{
     background:var(--ink);
     color:var(--paper);
+  }
+
+  .section-enter {
+    animation: sectionIn 0.35s ease;
+  }
+
+  @keyframes sectionIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   /* ---------- Modal ---------- */
@@ -270,6 +305,7 @@
     justify-content: center;
     padding: 1.5rem;
     z-index: 10;
+    animation: fadeIn 0.2s ease;
   }
 
   .modal {
@@ -283,6 +319,12 @@
     box-shadow: 0 24px 48px rgba(0,0,0,0.4);
     display: flex;
     flex-direction: column;
+    animation: modalPop 0.25s ease;
+  }
+
+  @keyframes modalPop {
+    from { opacity: 0; transform: scale(0.95) translateY(8px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
   }
 
   .modal-scroll {
@@ -314,11 +356,19 @@
     cursor: pointer;
     color: var(--ink);
     opacity: 0.5;
+    transition: opacity 0.15s ease;
   }
   .modal-close:hover { opacity: 0.9; }
 
   .modal h2 { font-family: 'Bebas Neue', sans-serif; font-weight: 400; font-size: 2rem; margin: 0 0 0.25rem; }
   .modal-date { font-size: 0.8rem; opacity: 0.6; margin: 0 0 1rem; }
+  .card p a, .modal-body a {
+    color: var(--academics);
+    font-weight: 600;
+    text-decoration: underline;
+  }
+  .card p a:hover, .modal-body a:hover { opacity: 0.7; }
+
   .modal-body { font-size: 0.95rem; line-height: 1.6; margin: 0; }
 
   button:focus-visible, input:focus-visible, .card:focus-visible {
@@ -363,7 +413,7 @@
     </button>
 </nav>
 
-<section id="announcementSection">
+<section id="announcementSection" class="section-enter">
 
 <div class="controls">
   <div class="filters" role="group" aria-label="Filter by category">
@@ -379,7 +429,7 @@
 <p class="empty-state" id="emptyState" hidden>Nothing here yet — try a different filter or search.</p>
 
 </section>
- <section id="materialsSection" hidden>
+ <section id="materialsSection" class="section-enter" hidden>
 
   <div class="controls">
 
@@ -442,14 +492,14 @@
 	  body: "placeholder for testing purposes."
     },
     {
-      title: "ACADEMICS ANNOUNCEMENT",
+      title: "REVIEWERS",
       category: "academics",
       date: "2026-07-31",
-      excerpt: "testing different categories",
-      body: "placeholder testing"
+      excerpt: "Click to see the post for reviewers",
+      body: "https://www.facebook.com/SSLGMonsay/posts/pfbid036SMJLTXoLsQk842Sr5A4MCTW5Uhm82dSb1KVhVmpWSeGMVL8ArkyPMnqRZJRpyH2l?rdid=LsLhlwQaPbeFfxWB#"
     },
 	{
-	 title: "testing body text",
+	 title: "events",
 	 category: "events",
 	 date: "2026-08-01",
 	 excerpt: "text",
@@ -519,6 +569,17 @@
     return div.innerHTML;
   }
 
+  function linkify(text) {
+    const urlPattern = /(https?:\/\/[^\s]+)/g;
+    return text.split(urlPattern).map((part, i) => {
+      if (i % 2 === 1) {
+        const safeUrl = escapeHtml(part);
+        return `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer">Open link ↗</a>`;
+      }
+      return escapeHtml(part);
+    }).join('');
+  }
+
   function formatDate(iso) {
     const d = new Date(iso + 'T00:00:00');
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -542,6 +603,7 @@
       const card = document.createElement('article');
       card.className = `card card--${a.category}`;
       card.style.setProperty('--r', `${((i % 5) - 2) * 0.6}deg`);
+      card.style.animationDelay = `${i * 0.04}s`;
       card.tabIndex = 0;
       card.setAttribute('role', 'button');
       card.setAttribute('aria-label', `Open announcement: ${a.title}`);
@@ -549,7 +611,7 @@
         <span class="card-tag">${categoryLabels[a.category]}</span>
         <h3>${escapeHtml(a.title)}</h3>
         <time datetime="${a.date}">${formatDate(a.date)}</time>
-        <p>${escapeHtml(a.excerpt)}</p>
+        <p>${linkify(a.excerpt)}</p>
       `;
       card.addEventListener('click', () => openModal(a, card));
       card.addEventListener('keydown', e => {
@@ -594,6 +656,8 @@ function renderMaterials(){
             `${((i%5)-2)*0.6}deg`
         );
 
+        card.style.animationDelay = `${i * 0.04}s`;
+
         card.tabIndex = 0;
         card.setAttribute('role', 'button');
         card.setAttribute('aria-label', `Open material: ${m.title}`);
@@ -607,7 +671,7 @@ function renderMaterials(){
 
             <time datetime="${m.date}">${formatDate(m.date)}</time>
 
-            <p>${escapeHtml(m.excerpt)}</p>
+            <p>${linkify(m.excerpt)}</p>
         `;
 
         const openThisMaterial = () => openModal({
@@ -635,7 +699,7 @@ function renderMaterials(){
     document.getElementById('modalTag').textContent = categoryLabels[a.category] || subjectLabels[a.category]; 
     document.getElementById('modalTitle').textContent = a.title;
     document.getElementById('modalDate').textContent = formatDate(a.date);
-    document.getElementById('modalBody').textContent = a.body;
+    document.getElementById('modalBody').innerHTML = linkify(a.body);
     document.querySelector('.modal').className = `modal card--${a.category}`;
     modalOverlay.hidden = false;
     modalClose.focus();
